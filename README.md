@@ -54,12 +54,30 @@ done: [
 
 Нужны Claude Code (терминал или вкладка Code в Claude Desktop), macOS и интернет для скачивания звуков.
 
+### Одним промптом
+
+Скопируй промпт в Claude Code, и он всё поставит сам:
+
+```text
+Установи плагин warcraft-sounds для Claude Code из https://github.com/hsamshod/claude-warcraft-sounds:
+1. Проверь, что это macOS и есть `afplay`. Если нет, остановись и скажи мне.
+2. Выполни `claude plugin marketplace add hsamshod/claude-warcraft-sounds`,
+   затем `claude plugin install warcraft-sounds@warcraft-sounds`.
+3. Запусти `download-sounds.sh` из папки плагина
+   (~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/) и проверь, что в sounds/ появились .mp3.
+4. Скажи, что нужно перезапустить Claude Code, и коротко перечисли, на какие события играют звуки.
+```
+
+Если Claude не может выполнить команды сам, используй ручную установку ниже.
+
+### Вручную
+
 ```
 /plugin marketplace add hsamshod/claude-warcraft-sounds
 /plugin install warcraft-sounds@warcraft-sounds
 ```
 
-Перезапусти Claude Code. При первом старте мод сам скачает звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты, в конце появится уведомление). Звуки Warcraft III принадлежат Blizzard и в репозиторий не входят.
+Перезапусти Claude Code. При первом старте мод сам скачает звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты; пока идёт загрузка, над промптом крутится индикатор, в конце появится уведомление). Звуки Warcraft III принадлежат Blizzard и в репозиторий не входят.
 
 Если звуки не скачались (нет сети, сайт недоступен), запусти скрипт вручную из папки плагина:
 
