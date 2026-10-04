@@ -1,3 +1,4 @@
+import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 // Категории событий → номера звуков. Номер N — файл sounds/wN.mp3 (нумерация со страницы
@@ -28,16 +29,25 @@ const SOUNDS = {
   // Начало задачи (отправка промпта)
   task: [
     2, // «Да, повелитель» (нежить)
+    39, // «Опять работа?»
     3, // «Жизнь за Нер'Зула!»
+    39, // «Опять работа?»
     6, // «За честь и отвагу» (Артас)
+    39, // «Опять работа?»
     17, // «Пора убивать» (лесной тролль)
+    39, // «Опять работа?»
     18, // «Мне это нравится»
+    39, // «Опять работа?»
     19, // «Никому не двигаться, у меня бомба» (гоблин)
+    39, // «Опять работа?»
     26, // «Моя жизнь принадлежит орде» (таурен)
+    39, // «Опять работа?»
     30, // «Да, повелитель» (мастер клинка)
+    39, // «Опять работа?»
     34, // «А вот так мне нравится» (орк)
     39, // «Опять работа?»
     40, // «Готов вкалывать» (раб орды)
+    39, // «Опять работа?»
   ],
   // Работа закончена (ответ готов)
   done: [
@@ -126,6 +136,11 @@ async function play($: EngineInterface, category: Category, isAwaited = false) {
   }
 }
 
+const downloadFrame = atom({ plugin: 'warcraft-sounds', key: 'downloadFrame' } as const, null)
+
+const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+const FRAME_MS = 250
+
 // Последний скачиваемый файл: если его нет, звуки не докачаны (или не скачивались вовсе).
 const SOUNDS_MARKER = 'sounds/w61.mp3'
 
@@ -135,15 +150,22 @@ async function ensureSounds($: EngineInterface) {
     return
   }
 
-  $.ui.toast('warcraft-sounds: скачиваю звуки Warcraft III…')
+  // Пока идёт загрузка, над промптом крутится индикатор (см. ui.render ниже).
+  await update($, downloadFrame, () => 0)
+  const tick = $.clock.every(FRAME_MS, () => update($, downloadFrame, frame => (frame ?? 0) + 1))
   let exitCode: number | null = null
 
-  for await (const piece of $.process.spawn({
-    argv: ['bash', `${$.plugin.root}/download-sounds.sh`],
-  })) {
-    if ('code' in piece) {
-      exitCode = piece.code
+  try {
+    for await (const piece of $.process.spawn({
+      argv: ['bash', `${$.plugin.root}/download-sounds.sh`],
+    })) {
+      if ('code' in piece) {
+        exitCode = piece.code
+      }
     }
+  } finally {
+    tick.cancel()
+    await update($, downloadFrame, () => null)
   }
 
   $.ui.toast(
@@ -161,6 +183,25 @@ export const register: Register = on => {
     await play($, 'start')
 
     return next(e)
+  })
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const frame = await read($, downloadFrame)
+
+    if (frame === null || e.props.hasSurvey) {
+      return next(e)
+    }
+
+    const { Box, Text } = $.ui.resolve(e)
+    const seconds = Math.floor((frame * FRAME_MS) / 1000)
+
+    return (
+      <Box>
+        <Text color="yellow">{SPINNER[frame % SPINNER.length]} </Text>
+        <Text>warcraft-sounds: скачиваю звуки Warcraft III ({seconds} с, около минуты). </Text>
+        <Text dimColor>Можно продолжать работу, звуки появятся после загрузки.</Text>
+      </Box>
+    )
   })
 
   on('prompt.submit', async ($, e, next) => {
