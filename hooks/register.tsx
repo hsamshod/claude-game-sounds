@@ -62,7 +62,7 @@ const SOUNDS = {
     37, // «Здесь нельзя строить»
     52, // «На нас напали» (некромант)
   ],
-  // Claude ждёт разрешения
+  // Диалог разрешения на экране (Claude ждёт ответа)
   waiting: [
     29, // «Думаешь?» (грифон)
     42, // «Чё надо, хозяин»
@@ -108,7 +108,7 @@ let busyUntil = 0
 const lastPick: Partial<Record<Category, number>> = {}
 
 function pick(category: Category): number {
-  const pool = SOUNDS[category]
+  const pool: readonly number[] = SOUNDS[category]
   let n = pool[Math.floor(Math.random() * pool.length)]!
 
   if (pool.length > 1 && n === lastPick[category]) {
@@ -174,14 +174,11 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('tool.check', async ($, e, next) => {
-    const verdict = await next(e)
+  // Классический хук PermissionRequest срабатывает, когда Claude реально показывает диалог разрешения.
+  on('classic.PermissionRequest', async ($, e, next) => {
+    await play($, 'waiting')
 
-    if (verdict.decision === 'ask') {
-      await play($, 'waiting')
-    }
-
-    return verdict
+    return next(e)
   })
 
   on('turn.complete', async ($, e, next) => {
