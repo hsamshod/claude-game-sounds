@@ -126,10 +126,38 @@ async function play($: EngineInterface, category: Category, isAwaited = false) {
   }
 }
 
+// Последний скачиваемый файл: если его нет, звуки не докачаны (или не скачивались вовсе).
+const SOUNDS_MARKER = 'sounds/w61.mp3'
+
+// Звуки Warcraft III не лежат в репозитории: при первой сессии докачиваем их скриптом.
+async function ensureSounds($: EngineInterface) {
+  if (await $.fs.exists(`${$.plugin.root}/${SOUNDS_MARKER}`)) {
+    return
+  }
+
+  $.ui.toast('warcraft-sounds: скачиваю звуки Warcraft III…')
+  let exitCode: number | null = null
+
+  for await (const piece of $.process.spawn({
+    argv: ['bash', `${$.plugin.root}/download-sounds.sh`],
+  })) {
+    if ('code' in piece) {
+      exitCode = piece.code
+    }
+  }
+
+  $.ui.toast(
+    exitCode === 0
+      ? 'warcraft-sounds: звуки скачаны'
+      : 'warcraft-sounds: не все звуки скачались, запусти download-sounds.sh вручную',
+  )
+}
+
 export const register: Register = on => {
   const limitFired = new Set<string>()
 
   on('session.start', async ($, e, next) => {
+    void ensureSounds($).catch(() => undefined)
     await play($, 'start')
 
     return next(e)

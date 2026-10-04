@@ -52,7 +52,24 @@ done: [
 
 ## Установка
 
-Звуки Warcraft III принадлежат Blizzard и в репозиторий не входят. Их скачивает скрипт.
+Нужны Claude Code (терминал или вкладка Code в Claude Desktop), macOS и интернет для скачивания звуков.
+
+```
+/plugin marketplace add hsamshod/claude-warcraft-sounds
+/plugin install warcraft-sounds@warcraft-sounds
+```
+
+Перезапусти Claude Code. При первом старте мод сам скачает звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты, в конце появится уведомление). Звуки Warcraft III принадлежат Blizzard и в репозиторий не входят.
+
+Если звуки не скачались (нет сети, сайт недоступен), запусти скрипт вручную из папки плагина:
+
+```bash
+bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.sh
+```
+
+### Из клона репозитория
+
+Так удобно править списки звуков (см. раздел выше) и не терять правки при обновлении плагина:
 
 ```bash
 git clone https://github.com/hsamshod/claude-warcraft-sounds.git
@@ -61,11 +78,13 @@ cd claude-warcraft-sounds
 claude --plugin-dir "$PWD"
 ```
 
-Чтобы мод грузился в каждой сессии без флага, добавь путь в `~/.claude/settings.json`:
+Чтобы мод из клона грузился в каждой сессии без флага, добавь путь в `~/.claude/settings.json`:
 
 ```json
 { "env": { "CLAUDE_CODE_PLUGIN_DIRS": "/абсолютный/путь/к/claude-warcraft-sounds" } }
 ```
+
+При установке через `/plugin install` файлы лежат в кэше Claude Code, и при обновлении плагина твои правки в `register.tsx` пропадут. Для своей настройки используй клон.
 
 ## Прочие параметры
 
