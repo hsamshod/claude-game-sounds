@@ -105,19 +105,11 @@ const LIMIT_PERCENT = 90
 const CLIP_MS = 2500
 
 let busyUntil = 0
-const lastPick: Partial<Record<Category, number>> = {}
 
 function pick(category: Category): number {
   const pool: readonly number[] = SOUNDS[category]
-  let n = pool[Math.floor(Math.random() * pool.length)]!
 
-  if (pool.length > 1 && n === lastPick[category]) {
-    n = pool[(pool.indexOf(n) + 1) % pool.length]!
-  }
-
-  lastPick[category] = n
-
-  return n
+  return pool[Math.floor(Math.random() * pool.length)]!
 }
 
 async function play($: EngineInterface, category: Category, isAwaited = false) {
