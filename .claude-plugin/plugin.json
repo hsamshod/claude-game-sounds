@@ -1,0 +1,8 @@
+{
+  "name": "warcraft-sounds",
+  "version": "0.1.0",
+  "description": "Warcraft III voice lines on Claude Code events: start, planning, tasks, done, limits, errors.",
+  "author": {
+    "name": "Shamshod Zhamolov"
+  }
+}
