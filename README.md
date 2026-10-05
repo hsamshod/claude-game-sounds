@@ -131,9 +131,22 @@ claude --plugin-dir "$PWD"
 - `LIMIT_PERCENT` — при каком заполнении окна лимита играть звук (по умолчанию 90).
 - `CLIP_MS` — сколько мс после начала клипа пропускать необязательные звуки, чтобы они не накладывались (по умолчанию 2500). Старт, ошибка, лимит и конец сессии играют всегда.
 
+## Правообладатели звуков
+
+| Пак | Игра | Правообладатель |
+|---|---|---|
+| `warcraft3` | Warcraft III: Reign of Chaos / The Frozen Throne | © Blizzard Entertainment, Inc. |
+| `cs16` | Counter-Strike 1.6 | © Valve Corporation |
+
+- Звуки в репозиторий не входят и мной не распространяются. Скрипт `download-sounds.sh` скачивает их на твою машину со сторонней страницы [zvukipro.com](https://zvukipro.com), а права на них остаются у правообладателей.
+- Warcraft, Warcraft III, Blizzard — товарные знаки Blizzard Entertainment. Counter-Strike, Valve — товарные знаки Valve Corporation.
+- Проект неофициальный, не связан с Blizzard, Valve или Anthropic и ими не одобрен.
+- Звуки используй только для личных некоммерческих целей и не перераспространяй.
+- Правообладатель, который возражает против ссылок на его материалы, может написать на почту из раздела «Контакты». Ссылки будут убраны.
+
 ## Лицензия
 
-Код — MIT. Звуки не входят в репозиторий и принадлежат Blizzard Entertainment (Warcraft III) и Valve (Counter-Strike 1.6).
+Лицензия MIT распространяется только на код. На звуки она не действует: их права принадлежат Blizzard Entertainment (Warcraft III) и Valve (Counter-Strike 1.6).
 
 ## Контакты
 
