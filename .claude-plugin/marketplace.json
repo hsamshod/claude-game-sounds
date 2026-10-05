@@ -1,16 +1,16 @@
 {
-  "name": "warcraft-sounds",
+  "name": "shamshod",
   "owner": {
     "name": "Shamshod Zhamolov"
   },
   "plugins": [
     {
-      "name": "warcraft-sounds",
+      "name": "game-sounds",
       "source": "./",
-      "description": "Реплики из Warcraft III на события Claude Code: старт, планирование, задачи, лимиты, ошибки."
+      "description": "Игровые реплики (Warcraft III, Counter-Strike 1.6) на события Claude Code: старт, планирование, задачи, лимиты, ошибки."
     }
   ],
   "metadata": {
-    "description": "Мод для Claude Code с репликами из Warcraft III"
+    "description": "Мод для Claude Code с игровыми репликами: Warcraft III, Counter-Strike 1.6"
   }
 }

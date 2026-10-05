@@ -1,4 +1,4 @@
-# warcraft-sounds
+# game-sounds
 
 Мод для Claude Code: реплики на события сессии (старт, планирование, задача, готово, лимит, ошибка). Два пака на выбор: Warcraft III и Counter-Strike 1.6. Работает в терминале и во вкладке Code в Claude Desktop на macOS, звук играет через `afplay`.
 
@@ -68,13 +68,13 @@ done: [
 Скопируй промпт в Claude Code, и он всё поставит сам:
 
 ```text
-Установи плагин warcraft-sounds для Claude Code из https://github.com/hsamshod/claude-warcraft-sounds:
+Установи плагин game-sounds для Claude Code из https://github.com/hsamshod/claude-game-sounds:
 1. Проверь, что это macOS и есть `afplay`. Если нет, остановись и скажи мне.
-2. Выполни `claude plugin marketplace add hsamshod/claude-warcraft-sounds`,
-   затем `claude plugin install warcraft-sounds@warcraft-sounds`.
+2. Выполни `claude plugin marketplace add hsamshod/claude-game-sounds`,
+   затем `claude plugin install game-sounds@shamshod`.
 3. Спроси меня, какой звуковой пак поставить: warcraft3 или cs16.
 4. Запусти `download-sounds.sh <пак>` из папки плагина
-   (~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/) и проверь, что в sounds/<пак>/ появились .mp3.
+   (~/.claude/plugins/cache/shamshod/game-sounds/*/) и проверь, что в sounds/<пак>/ появились .mp3.
 5. Скажи, что нужно перезапустить Claude Code (пак можно сменить командой `/sound-pack`), и коротко перечисли, на какие события играют звуки.
 ```
 
@@ -83,8 +83,8 @@ done: [
 ### Вручную
 
 ```
-/plugin marketplace add hsamshod/claude-warcraft-sounds
-/plugin install warcraft-sounds@warcraft-sounds
+/plugin marketplace add hsamshod/claude-game-sounds
+/plugin install game-sounds@shamshod
 ```
 
 Перезапусти Claude Code. При первом старте мод спросит пак и сам скачает его звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты; пока идёт загрузка, над промптом крутится индикатор, в конце появится уведомление). Звуки принадлежат Blizzard Entertainment и Valve и в репозиторий не входят.
@@ -92,7 +92,7 @@ done: [
 Если звуки не скачались (нет сети, сайт недоступен), запусти скрипт вручную из папки плагина:
 
 ```bash
-bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.sh cs16   # или warcraft3
+bash ~/.claude/plugins/cache/shamshod/game-sounds/*/download-sounds.sh cs16   # или warcraft3
 ```
 
 ### Из клона репозитория
@@ -100,8 +100,8 @@ bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.s
 Так удобно править списки звуков (см. раздел выше) и не терять правки при обновлении плагина:
 
 ```bash
-git clone https://github.com/hsamshod/claude-warcraft-sounds.git
-cd claude-warcraft-sounds
+git clone https://github.com/hsamshod/claude-game-sounds.git
+cd claude-game-sounds
 ./download-sounds.sh cs16   # или warcraft3
 claude --plugin-dir "$PWD"
 ```
@@ -109,7 +109,7 @@ claude --plugin-dir "$PWD"
 Чтобы мод из клона грузился в каждой сессии без флага, добавь путь в `~/.claude/settings.json`:
 
 ```json
-{ "env": { "CLAUDE_CODE_PLUGIN_DIRS": "/абсолютный/путь/к/claude-warcraft-sounds" } }
+{ "env": { "CLAUDE_CODE_PLUGIN_DIRS": "/абсолютный/путь/к/claude-game-sounds" } }
 ```
 
 При установке через `/plugin install` файлы лежат в кэше Claude Code, и при обновлении плагина твои правки в `register.tsx` пропадут. Для своей настройки используй клон.

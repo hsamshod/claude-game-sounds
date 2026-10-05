@@ -240,7 +240,7 @@ async function play($: EngineInterface, category: Category, isAwaited = false) {
   }
 }
 
-const downloadFrame = atom({ plugin: 'warcraft-sounds', key: 'downloadFrame' } as const, null)
+const downloadFrame = atom({ plugin: 'game-sounds', key: 'downloadFrame' } as const, null)
 
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 const FRAME_MS = 250
@@ -271,14 +271,14 @@ async function ensureSounds($: EngineInterface, pack: Pack) {
 
   $.ui.toast(
     exitCode === 0
-      ? `warcraft-sounds: звуки ${PACK_TITLES[pack]} скачаны`
-      : `warcraft-sounds: не все звуки скачались, запусти download-sounds.sh ${pack} вручную`,
+      ? `game-sounds: звуки ${PACK_TITLES[pack]} скачаны`
+      : `game-sounds: не все звуки скачались, запусти download-sounds.sh ${pack} вручную`,
   )
 }
 
 async function setPack($: EngineInterface, pack: Pack) {
   activePack = pack
-  await $.config.set({ key: 'warcraft-sounds.pack', value: pack })
+  await $.config.set({ key: 'game-sounds.pack', value: pack })
   void ensureSounds($, pack).catch(() => undefined)
 }
 
@@ -355,7 +355,7 @@ export const register: Register = (on, options) => {
     return (
       <Box>
         <Text color="yellow">{SPINNER[frame % SPINNER.length]} </Text>
-        <Text>warcraft-sounds: скачиваю звуки ({seconds} с, около минуты). </Text>
+        <Text>game-sounds: скачиваю звуки ({seconds} с, около минуты). </Text>
         <Text dimColor>Можно продолжать работу, звуки появятся после загрузки.</Text>
       </Box>
     )

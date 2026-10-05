@@ -1,5 +1,5 @@
 {
-  "name": "warcraft-sounds",
+  "name": "game-sounds",
   "version": "0.2.0",
   "description": "Voice lines on Claude Code events (start, planning, tasks, done, limits, errors). Packs: Warcraft III, Counter-Strike 1.6.",
   "author": {
