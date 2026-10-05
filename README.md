@@ -8,8 +8,18 @@
 
 Переключиться можно в любой момент:
 
-- командой `/sound-pack` (диалог выбора) или `/sound-pack warcraft3`, `/sound-pack cs16`;
-- в `/config`, поле «Звуковой пак» (`ask` значит «спросить при старте»).
+### Командой
+
+- `/sound-pack` — диалог выбора пака
+- `/sound-pack warcraft3` — выбрать Warcraft III
+- `/sound-pack cs16` — выбрать Counter-Strike 1.6
+
+### Через конфиг
+
+В `/config`, поле «Звуковой пак`:
+- `warcraft3` — Warcraft III
+- `cs16` — Counter-Strike 1.6
+- `ask` — спросить при старте (значение по умолчанию)
 
 ## Как настроить звуки под себя
 
