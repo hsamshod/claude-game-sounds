@@ -1,10 +1,11 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-// Категории событий → номера звуков. Номер N — файл sounds/wN.mp3 (нумерация со страницы
+// Категории событий → номера звуков. Номер N — файл sounds/<пак>/N.mp3 (нумерация со страницы
 // zvukipro.com). Чтобы изменить озвучку, правь списки ниже: добавляй или убирай номера.
-// Не скачиваются и не используются: 20 «Gold mine explosion», 41 «Да», 44 «Food limit exceeded».
-const SOUNDS = {
+// Warcraft III. Не скачиваются и не используются: 20 «Gold mine explosion», 41 «Да»,
+// 44 «Food limit exceeded».
+const WARCRAFT3 = {
   // Старт Claude Code
   start: [
     1, // «Чего желает мой повелитель» (послушник)
@@ -106,7 +107,103 @@ const SOUNDS = {
   ],
 } as const
 
-type Category = keyof typeof SOUNDS
+// Counter-Strike 1.6: голосовые команды, https://zvukipro.com/games/1771-zvuki-golosovyh-komand-v-igre-counter-strike-16.html
+const CS16 = {
+  // Старт Claude Code
+  start: [
+    32, // locknload
+    31, // letsgo
+    11, // reportin
+    20, // ct_reportingin
+  ],
+  // Вход в режим планирования
+  planStart: [
+    9, // com_followcom
+    43, // takepoint
+    37, // position
+    34, // meetme
+  ],
+  // План готов
+  planReady: [
+    1, // com_go
+    27, // go
+    35, // moveout
+    42, // stormfront
+  ],
+  // Начало задачи (отправка промпта)
+  task: [
+    39, // roger
+    12, // ct_affirm
+    39, // roger
+    25, // followme
+    39, // roger
+    10, // com_getinpos
+  ],
+  // Работа закончена (ответ готов)
+  done: [
+    7, // ctwin
+    8, // terwin
+    6, // clear
+    3, // bombdef
+    30, // rescued
+    21, // elim
+  ],
+  // Лимит подписки ≥ LIMIT_PERCENT
+  limit: [
+    23, // fallback
+    5, // circleback
+  ],
+  // Ошибка хода (API error, отказ модели)
+  error: [
+    36, // negative
+    17, // ct_imhit
+    2, // blow
+    29, // hosdown
+  ],
+  // Диалог разрешения на экране (Claude ждёт ответа)
+  waiting: [
+    13, // ct_backup
+    14, // ct_coverme
+    19, // ct_point
+    38, // regroup
+  ],
+  // Конец сессии
+  end: [
+    40, // rounddraw
+  ],
+  // Субагент завершился с ошибкой
+  death: [
+    33, // matedown
+    17, // ct_imhit
+  ],
+  // Edit / Write
+  fx: [
+    4, // bombpl
+    16, // ct_fireinhole
+    24, // fireassis
+  ],
+} as const satisfies Record<keyof typeof WARCRAFT3, readonly number[]>
+
+const PACKS = { warcraft3: WARCRAFT3, cs16: CS16 } as const
+
+type Pack = keyof typeof PACKS
+
+const PACK_TITLES: Record<Pack, string> = {
+  warcraft3: 'Warcraft III',
+  cs16: 'Counter-Strike 1.6',
+}
+
+// Последний скачиваемый файл пака: если его нет, звуки не докачаны (или не скачивались вовсе).
+const PACK_MARKERS: Record<Pack, string> = {
+  warcraft3: 'sounds/warcraft3/61.mp3',
+  cs16: 'sounds/cs16/44.mp3',
+}
+
+function isPack(value: unknown): value is Pack {
+  return typeof value === 'string' && value in PACKS
+}
+
+type Category = keyof typeof WARCRAFT3
 
 // Эти категории играют всегда; остальные пропускаются, пока звучит предыдущий клип.
 const ALWAYS: readonly Category[] = ['limit', 'error', 'end', 'start']
@@ -115,13 +212,20 @@ const CLIP_MS = 2500
 
 let busyUntil = 0
 
-function pick(category: Category): number {
-  const pool: readonly number[] = SOUNDS[category]
+// Выбранный пак; null — ещё не выбран, звуков нет (на старте спросим).
+let activePack: Pack | null = null
+
+function pick(pack: Pack, category: Category): number {
+  const pool: readonly number[] = PACKS[pack][category]
 
   return pool[Math.floor(Math.random() * pool.length)]!
 }
 
 async function play($: EngineInterface, category: Category, isAwaited = false) {
+  if (activePack === null) {
+    return
+  }
+
   const now = await $.clock.now()
 
   if (now < busyUntil && !ALWAYS.includes(category)) {
@@ -129,7 +233,7 @@ async function play($: EngineInterface, category: Category, isAwaited = false) {
   }
 
   busyUntil = now + CLIP_MS
-  const clip = $.audio.play({ asset: `sounds/w${pick(category)}.mp3` }).catch(() => undefined)
+  const clip = $.audio.play({ asset: `sounds/${activePack}/${pick(activePack, category)}.mp3` }).catch(() => undefined)
 
   if (isAwaited) {
     await clip
@@ -141,12 +245,9 @@ const downloadFrame = atom({ plugin: 'warcraft-sounds', key: 'downloadFrame' } a
 const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 const FRAME_MS = 250
 
-// Последний скачиваемый файл: если его нет, звуки не докачаны (или не скачивались вовсе).
-const SOUNDS_MARKER = 'sounds/w61.mp3'
-
-// Звуки Warcraft III не лежат в репозитории: при первой сессии докачиваем их скриптом.
-async function ensureSounds($: EngineInterface) {
-  if (await $.fs.exists(`${$.plugin.root}/${SOUNDS_MARKER}`)) {
+// Звуки не лежат в репозитории: при первом выборе пака докачиваем их скриптом.
+async function ensureSounds($: EngineInterface, pack: Pack) {
+  if (await $.fs.exists(`${$.plugin.root}/${PACK_MARKERS[pack]}`)) {
     return
   }
 
@@ -157,7 +258,7 @@ async function ensureSounds($: EngineInterface) {
 
   try {
     for await (const piece of $.process.spawn({
-      argv: ['bash', `${$.plugin.root}/download-sounds.sh`],
+      argv: ['bash', `${$.plugin.root}/download-sounds.sh`, pack],
     })) {
       if ('code' in piece) {
         exitCode = piece.code
@@ -170,19 +271,75 @@ async function ensureSounds($: EngineInterface) {
 
   $.ui.toast(
     exitCode === 0
-      ? 'warcraft-sounds: звуки скачаны'
-      : 'warcraft-sounds: не все звуки скачались, запусти download-sounds.sh вручную',
+      ? `warcraft-sounds: звуки ${PACK_TITLES[pack]} скачаны`
+      : `warcraft-sounds: не все звуки скачались, запусти download-sounds.sh ${pack} вручную`,
   )
 }
 
-export const register: Register = on => {
+async function setPack($: EngineInterface, pack: Pack) {
+  activePack = pack
+  await $.config.set({ key: 'warcraft-sounds.pack', value: pack })
+  void ensureSounds($, pack).catch(() => undefined)
+}
+
+// Спрашивает пак диалогом; null, если диалог закрыт (спросим снова в следующий раз).
+async function choosePack($: EngineInterface): Promise<Pack | null> {
+  const packs = Object.keys(PACKS) as Pack[]
+  const answer = await $.ui
+    .ask('Какой звуковой пак включить?', packs.map(pack => PACK_TITLES[pack]))
+    .catch(() => null)
+  const pack = packs.find(candidate => PACK_TITLES[candidate] === answer)
+
+  if (pack === undefined) {
+    return null
+  }
+
+  await setPack($, pack)
+
+  return pack
+}
+
+export const register: Register = (on, options) => {
   const limitFired = new Set<string>()
 
+  activePack = isPack(options.pack) ? options.pack : null
+
   on('session.start', async ($, e, next) => {
-    void ensureSounds($).catch(() => undefined)
+    await $.command.register({
+      name: 'sound-pack',
+      description: 'Выбрать звуковой пак: Warcraft III или Counter-Strike 1.6',
+      argumentHint: Object.keys(PACKS).join(' | '),
+    })
+
+    if (activePack === null) {
+      if (e.isInteractive) {
+        await choosePack($)
+      }
+    } else {
+      void ensureSounds($, activePack).catch(() => undefined)
+    }
+
     await play($, 'start')
 
     return next(e)
+  })
+
+  on('command.run', { command: 'sound-pack' }, async ($, e) => {
+    const arg = e.args.trim()
+
+    if (arg === '') {
+      const pack = await choosePack($)
+
+      return { text: pack === null ? 'Пак не выбран.' : `Пак: ${PACK_TITLES[pack]}` }
+    }
+
+    if (!isPack(arg)) {
+      return { text: `Неизвестный пак «${arg}». Доступны: ${Object.keys(PACKS).join(', ')}.` }
+    }
+
+    await setPack($, arg)
+
+    return { text: `Пак: ${PACK_TITLES[arg]}` }
   })
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
@@ -198,7 +355,7 @@ export const register: Register = on => {
     return (
       <Box>
         <Text color="yellow">{SPINNER[frame % SPINNER.length]} </Text>
-        <Text>warcraft-sounds: скачиваю звуки Warcraft III ({seconds} с, около минуты). </Text>
+        <Text>warcraft-sounds: скачиваю звуки ({seconds} с, около минуты). </Text>
         <Text dimColor>Можно продолжать работу, звуки появятся после загрузки.</Text>
       </Box>
     )

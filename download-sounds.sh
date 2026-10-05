@@ -1,26 +1,45 @@
 #!/usr/bin/env bash
-# Скачивает звуки Warcraft III с zvukipro.com в sounds/w<N>.mp3.
+# Скачивает звуки пака с zvukipro.com в sounds/<pack>/<N>.mp3.
+# Использование: download-sounds.sh [warcraft3|cs16]  (по умолчанию warcraft3).
 # N — номер звука в списке на странице; те же номера использует hooks/register.tsx.
 set -euo pipefail
 
 cd "$(dirname "$0")"
-mkdir -p sounds
 
-PAGE="https://zvukipro.com/games/2214-zvuki-iz-igry-warcraft-3.html"
+PACK="${1:-warcraft3}"
 BASE="https://zvukipro.com/?do=download&id="
 
 # номер:id
-SOUNDS="1:41374 2:41375 3:44972 4:41376 5:60066 6:41377 7:41378 8:41379 9:41380 10:41381
+case "$PACK" in
+  warcraft3)
+    PAGE="https://zvukipro.com/games/2214-zvuki-iz-igry-warcraft-3.html"
+    SOUNDS="1:41374 2:41375 3:44972 4:41376 5:60066 6:41377 7:41378 8:41379 9:41380 10:41381
 11:41382 12:41383 13:41384 14:41385 15:41386 16:41387 17:41388 18:41389 19:41390 21:41392
 22:41393 23:41394 24:41395 25:44024 26:41396 27:41397 28:41398 29:41399 30:41400 31:41401
 32:41402 33:41403 34:73084 35:41404 36:60065 37:41405 38:41406 39:41407 40:41408 42:41410
 43:41411 45:41413 46:48455 47:55590 48:56578 49:56327 50:56325 51:60068 52:56326 53:58711
 54:58712 55:59031 56:60067 57:60069 58:60070 59:78983 60:78984 61:78985"
+    ;;
+  cs16)
+    PAGE="https://zvukipro.com/games/1771-zvuki-golosovyh-komand-v-igre-counter-strike-16.html"
+    SOUNDS="1:31792 2:31785 3:31786 4:31787 5:31788 6:31789 7:31803 8:31828 9:31790 10:31791
+11:31793 12:31794 13:31795 14:31796 15:31797 16:31798 17:31799 18:31800 19:31801 20:31802
+21:31804 22:31805 23:31806 24:31807 25:31809 26:31810 27:31811 28:31812 29:31813 30:31822
+31:31814 32:31815 33:31816 34:31817 35:31818 36:31819 37:31820 38:31821 39:31823 40:31824
+41:31825 42:31826 43:31827 44:31829"
+    ;;
+  *)
+    echo "неизвестный пак: $PACK (доступны: warcraft3, cs16)" >&2
+    exit 2
+    ;;
+esac
+
+mkdir -p "sounds/$PACK"
 
 ok=0; failed=0
 for pair in $SOUNDS; do
   n=${pair%%:*}; id=${pair##*:}
-  out="sounds/w$n.mp3"
+  out="sounds/$PACK/$n.mp3"
 
   if [ -s "$out" ]; then ok=$((ok + 1)); continue; fi
 
@@ -29,10 +48,10 @@ for pair in $SOUNDS; do
   if [ -s "$out" ] && file "$out" | grep -q -E "Audio|MPEG"; then
     ok=$((ok + 1))
   else
-    rm -f "$out"; failed=$((failed + 1)); echo "не скачался: w$n (id $id)" >&2
+    rm -f "$out"; failed=$((failed + 1)); echo "не скачался: $PACK/$n (id $id)" >&2
   fi
   sleep 0.3
 done
 
-echo "готово: $ok, ошибок: $failed"
+echo "готово ($PACK): $ok, ошибок: $failed"
 [ "$failed" -eq 0 ]

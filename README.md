@@ -1,10 +1,19 @@
 # warcraft-sounds
 
-Мод для Claude Code: реплики из Warcraft III на события сессии (старт, планирование, задача, готово, лимит, ошибка). Работает в терминале и во вкладке Code в Claude Desktop на macOS, звук играет через `afplay`.
+Мод для Claude Code: реплики на события сессии (старт, планирование, задача, готово, лимит, ошибка). Два пака на выбор: Warcraft III и Counter-Strike 1.6. Работает в терминале и во вкладке Code в Claude Desktop на macOS, звук играет через `afplay`.
+
+## Выбор пака
+
+При первом старте мод спросит, какой пак включить: Warcraft III или Counter-Strike 1.6. Пока пак не выбран, звуков нет. Звуки выбранного пака скачиваются сами.
+
+Переключиться можно в любой момент:
+
+- командой `/sound-pack` (диалог выбора) или `/sound-pack warcraft3`, `/sound-pack cs16`;
+- в `/config`, поле «Звуковой пак» (`ask` значит «спросить при старте»).
 
 ## Как настроить звуки под себя
 
-Все соответствия «событие → звуки» лежат в начале файла `hooks/register.tsx`, в словаре `SOUNDS`. Каждая категория это событие, а числа в ней это номера звуков. Номер `N` означает файл `sounds/wN.mp3`, рядом с каждым номером в комментарии написано, что это за фраза:
+Все соответствия «событие → звуки» лежат в начале файла `hooks/register.tsx`, в словарях `WARCRAFT3` и `CS16`. Каждая категория это событие, а числа в ней это номера звуков. Номер `N` означает файл `sounds/<пак>/N.mp3`, рядом с каждым номером в комментарии написано, что это за фраза:
 
 ```ts
 task: [
@@ -30,7 +39,7 @@ done: [
 
   Здесь 39 сыграет в трёх случаях из четырёх (75%), а 40 в одном (25%). Один и тот же звук может сыграть и два раза подряд.
 - **Убрать звук.** Удали строку или закомментируй её. Не оставляй список пустым: на такое событие звука не будет.
-- **Добавить звук, которого нет в списках.** Номера всех звуков взяты со [страницы zvukipro.com](https://zvukipro.com/games/2214-zvuki-iz-igry-warcraft-3.html). Номера 20, 41 и 44 по умолчанию не скачиваются. Чтобы добавить любой другой звук, впиши пару `номер:id` в `download-sounds.sh`, запусти скрипт и добавь номер в нужную категорию.
+- **Добавить звук, которого нет в списках.** Номера звуков Warcraft III взяты со [страницы zvukipro.com](https://zvukipro.com/games/2214-zvuki-iz-igry-warcraft-3.html), Counter-Strike 1.6 со [своей страницы](https://zvukipro.com/games/1771-zvuki-golosovyh-komand-v-igre-counter-strike-16.html). Номера 20, 41 и 44 Warcraft III по умолчанию не скачиваются. Чтобы добавить любой другой звук, впиши пару `номер:id` в `download-sounds.sh`, запусти скрипт и добавь номер в нужную категорию.
 - **Применить изменения.** Перезапусти Claude Code. Если мод подключён с хот-релоадом, он перечитается сам.
 - **Проверить правку.** Команда `claude plugin validate .` сообщит об ошибке в файле.
 
@@ -63,9 +72,10 @@ done: [
 1. Проверь, что это macOS и есть `afplay`. Если нет, остановись и скажи мне.
 2. Выполни `claude plugin marketplace add hsamshod/claude-warcraft-sounds`,
    затем `claude plugin install warcraft-sounds@warcraft-sounds`.
-3. Запусти `download-sounds.sh` из папки плагина
-   (~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/) и проверь, что в sounds/ появились .mp3.
-4. Скажи, что нужно перезапустить Claude Code, и коротко перечисли, на какие события играют звуки.
+3. Спроси меня, какой звуковой пак поставить: warcraft3 или cs16.
+4. Запусти `download-sounds.sh <пак>` из папки плагина
+   (~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/) и проверь, что в sounds/<пак>/ появились .mp3.
+5. Скажи, что нужно перезапустить Claude Code (пак можно сменить командой `/sound-pack`), и коротко перечисли, на какие события играют звуки.
 ```
 
 Если Claude не может выполнить команды сам, используй ручную установку ниже.
@@ -77,12 +87,12 @@ done: [
 /plugin install warcraft-sounds@warcraft-sounds
 ```
 
-Перезапусти Claude Code. При первом старте мод сам скачает звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты; пока идёт загрузка, над промптом крутится индикатор, в конце появится уведомление). Звуки Warcraft III принадлежат Blizzard и в репозиторий не входят.
+Перезапусти Claude Code. При первом старте мод спросит пак и сам скачает его звуки с zvukipro.com скриптом `download-sounds.sh` (около минуты; пока идёт загрузка, над промптом крутится индикатор, в конце появится уведомление). Звуки принадлежат Blizzard Entertainment и Valve и в репозиторий не входят.
 
 Если звуки не скачались (нет сети, сайт недоступен), запусти скрипт вручную из папки плагина:
 
 ```bash
-bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.sh
+bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.sh cs16   # или warcraft3
 ```
 
 ### Из клона репозитория
@@ -92,7 +102,7 @@ bash ~/.claude/plugins/cache/warcraft-sounds/warcraft-sounds/*/download-sounds.s
 ```bash
 git clone https://github.com/hsamshod/claude-warcraft-sounds.git
 cd claude-warcraft-sounds
-./download-sounds.sh
+./download-sounds.sh cs16   # или warcraft3
 claude --plugin-dir "$PWD"
 ```
 
@@ -113,4 +123,8 @@ claude --plugin-dir "$PWD"
 
 ## Лицензия
 
-Код — MIT. Звуки не входят в репозиторий и принадлежат Blizzard Entertainment.
+Код — MIT. Звуки не входят в репозиторий и принадлежат Blizzard Entertainment (Warcraft III) и Valve (Counter-Strike 1.6).
+
+## Контакты
+
+Почта: shamshod.zhamolov@yandex.ru
