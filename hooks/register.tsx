@@ -264,13 +264,14 @@ async function ensureSounds($: EngineInterface, pack: Pack) {
   let exitCode: number | null = null
 
   try {
-    for await (const piece of $.process.spawn({
-      argv: ['bash', `${$.plugin.root}/download-sounds.sh`, pack],
-    })) {
-      if ('code' in piece) {
-        exitCode = piece.code
-      }
-    }
+    // spawn отдаёт код выхода как возвращаемое значение стрима, а for await его теряет,
+    // поэтому используем run: он ждёт завершения и сразу возвращает exitCode.
+    const result = await $.process.run(['bash', `${$.plugin.root}/download-sounds.sh`, pack], {
+      timeoutMs: 600_000,
+    })
+    exitCode = result.exitCode
+  } catch {
+    exitCode = null
   } finally {
     tick.cancel()
     await update($, downloadFrame, () => null)
