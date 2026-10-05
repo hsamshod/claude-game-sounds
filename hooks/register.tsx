@@ -112,41 +112,37 @@ const CS16 = {
   // Старт Claude Code
   start: [
     32, // locknload
-    31, // letsgo
-    11, // reportin
-    20, // ct_reportingin
   ],
   // Вход в режим планирования
   planStart: [
     9, // com_followcom
-    43, // takepoint
     37, // position
-    34, // meetme
   ],
   // План готов
   planReady: [
     1, // com_go
-    27, // go
     35, // moveout
     42, // stormfront
+    25, // followme
   ],
   // Начало задачи (отправка промпта)
   task: [
+    27, // go
     39, // roger
     12, // ct_affirm
     39, // roger
-    25, // followme
-    39, // roger
     10, // com_getinpos
+    39, // roger
+    31, // letsgo
   ],
   // Работа закончена (ответ готов)
   done: [
-    7, // ctwin
-    8, // terwin
+    43, // takepoint
     6, // clear
     3, // bombdef
     30, // rescued
     21, // elim
+    105, // убийство курицы
   ],
   // Лимит подписки ≥ LIMIT_PERCENT
   limit: [
@@ -166,10 +162,15 @@ const CS16 = {
     14, // ct_coverme
     19, // ct_point
     38, // regroup
+    16, // ct_fireinhole
+    4, // bombpl
+    24, // fireassis
+    122, // бомба пикнула
   ],
   // Конец сессии
   end: [
     40, // rounddraw
+    7, // ctwin
   ],
   // Субагент завершился с ошибкой
   death: [
@@ -178,9 +179,15 @@ const CS16 = {
   ],
   // Edit / Write
   fx: [
-    4, // bombpl
-    16, // ct_fireinhole
-    24, // fireassis
+    118, // калашников
+    119, // калашников (вариант 2)
+    120, // АВП
+    124, // дигл
+    129, // MP5 с глушителем
+    135, // AUG
+    128, // рикошет
+    126, // удар ножом
+    127, // нож достали
   ],
 } as const satisfies Record<keyof typeof WARCRAFT3, readonly number[]>
 
@@ -196,7 +203,7 @@ const PACK_TITLES: Record<Pack, string> = {
 // Последний скачиваемый файл пака: если его нет, звуки не докачаны (или не скачивались вовсе).
 const PACK_MARKERS: Record<Pack, string> = {
   warcraft3: 'sounds/warcraft3/61.mp3',
-  cs16: 'sounds/cs16/44.mp3',
+  cs16: 'sounds/cs16/135.mp3',
 }
 
 function isPack(value: unknown): value is Pack {
