@@ -112,6 +112,8 @@ const CS16 = {
   // Старт Claude Code
   start: [
     32, // locknload
+    31, // letsgo
+    27, // go
   ],
   // Вход в режим планирования
   planStart: [
@@ -127,7 +129,6 @@ const CS16 = {
   ],
   // Начало задачи (отправка промпта)
   task: [
-    27, // go
     39, // roger
     12, // ct_affirm
     39, // roger
